@@ -1,0 +1,6 @@
+build-essential
+gcc-arm-none-eabi
+gdb-arm-none-eabi
+make
+git
+wget
