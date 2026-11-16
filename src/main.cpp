@@ -1,37 +1,79 @@
 /* 
     VexCode Competition Fall 2026
     Regina Mundi Catholic School
-    London, Ontario
+    London, Ontario    
 */
 
-#pragma region VEXcode Generated Robot Configuration
+# pragma region VEXcode Generated Robot Configuration
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <string.h>
 #include "vex.h"
 
 using namespace vex;
 
-// Brain should be defined by default
+// Brain should be initialized by default
+
 brain Brain;
 
-// Controller 
 controller CONTROLLER = controller(primary);
 
 // Drivetrain motors
-motor DRIVETRAIN_LEFT = motor(PORT2, ratio6_1, true);
-motor DRIVETRAIN_RIGHT = motor(PORT1, ratio6_1, false);
+
+motor DRIVETRAIN_LEFT = motor(PORT1, false);
+motor DRIVETRAIN_RIGHT = motor(PORT2, true);
 motor_group DRIVETRAIN = motor_group(DRIVETRAIN_LEFT, DRIVETRAIN_RIGHT);
 
 // Elevator motors
-motor ELEVATOR_LEFT = motor(PORT4, ratio36_1, true);
-motor ELEVATOR_RIGHT = motor(PORT5, ratio36_1, false);
-motor_group ELEVATOR = motor_group(ELEVATOR_LEFT, ELEVATOR_RIGHT);
+
+motor ELEVATOR_1 = motor(PORT3, false);
+motor ELEVATOR_2 = motor(PORT4, true);
+motor_group ELEVATOR = motor_group(ELEVATOR_1, ELEVATOR_2);
+
+// Arm motor
+
+motor ARM = motor(PORT5, false);
 
 // Claw motor
-motor CLAW = motor(PORT3, ratio36_1, false);
+
+motor CLAW = motor(PORT6, false);
+
+// Store Joysticks positions
+
+int32_t JOYSTICK[5] = {0,0,0,0,0};
+
+void update_joysticks_position() {
+    JOYSTICK[1] = CONTROLLER.Axis1.position();
+    JOYSTICK[2] = CONTROLLER.Axis2.position();
+    JOYSTICK[3] = CONTROLLER.Axis3.position();
+    JOYSTICK[4] = CONTROLLER.Axis4.position();
+}
+
+// Update Button Status
+
+bool BUTTON[5] = {0,0,0,0,0};
+
+void update_button_status() {
+    BUTTON[1] = CONTROLLER.ButtonL1.pressing();
+    BUTTON[2] = CONTROLLER.ButtonL2.pressing();
+    BUTTON[3] = CONTROLLER.ButtonR1.pressing();
+    BUTTON[4] = CONTROLLER.ButtonR2.pressing();
+}
+
+void update_control_status() {
+    update_joysticks_position();
+    update_button_status();
+}
+
+// Determine direction
+
+directionType direction(int32_t position) {
+    return (position > 0) ? forward : reverse;
+}
+
+directionType not_direction(directionType direction) { // Inverse of direction
+    return (direction == forward) ? reverse : forward;
+}
 
 // Initialize robot configuration
 void vexcodeInit() {
@@ -42,80 +84,60 @@ void vexcodeInit() {
     // Combine these values into a single integer
     int seed = int(batteryVoltage + batteryCurrent * 100) + systemTime;
 
+    // Set motors speed
+    DRIVETRAIN_LEFT.setVelocity(75, percent);
+    DRIVETRAIN_RIGHT.setVelocity(75, percent);
+
     // Set the seed
     srand(seed);
 }
 
-// Define inputs from controller
-int axis() {
-    if (abs(CONTROLLER.Axis1.position()) > 25) {return 1;}
-    if (abs(CONTROLLER.Axis2.position()) > 25) {return 2;}
-    if (abs(CONTROLLER.Axis3.position()) > 5) {return 3;}
-    if (abs(CONTROLLER.Axis4.position()) > 5) {return 4;}
-    else {return 0;}
-}
 
-directionType direction(int position) {
-    return (position > 0) ? forward : reverse;
-}
 
-directionType opposite(directionType direction) {
-    if (direction == forward) {return reverse;}
-    else if (direction == reverse) {return forward;}
-    else {return forward;}
-}
+// Remote Control configuration
 
 void remote_control() {
-    // --- 1. Control Claw (Axis 1) ---
-    int axis1Val = CONTROLLER.Axis1.position();
-    if (abs(axis1Val) > 15) {
-        CLAW.setVelocity(abs(axis1Val), percent);
-        CLAW.spin((axis1Val > 0) ? forward : reverse);
+    if (BUTTON[1] && !BUTTON[2]) {  // Left drivetrain motor
+        DRIVETRAIN_LEFT.spin(forward);
+    } else if (!BUTTON[1] && BUTTON[2]) {
+        DRIVETRAIN_LEFT.spin(reverse);
     } else {
-        CLAW.stop();
-        CLAW.setStopping(hold);
+        DRIVETRAIN_LEFT.setStopping(hold);
     }
 
-    // --- 2. Control Elevator (Axis 2) ---
-    int axis2Val = CONTROLLER.Axis2.position();
-    if (abs(axis2Val) > 15) {
-        ELEVATOR.setVelocity(abs(axis2Val), percent);
-        ELEVATOR.spin((axis2Val > 0) ? forward : reverse);
+    if (BUTTON[3] && !BUTTON[4]) {  // Rigth drivetrain motor
+        DRIVETRAIN_RIGHT.spin(forward);
+    } else if (!BUTTON[3] && BUTTON[4]) {
+        DRIVETRAIN_RIGHT.spin(reverse);
     } else {
-        ELEVATOR.stop();
-        ELEVATOR.setStopping(hold);
+        DRIVETRAIN_RIGHT.setStopping(hold);
     }
 
-    // --- 3. Control Drivetrain Forward/Backward (Axis 3) ---
-    int axis3Val = CONTROLLER.Axis3.position();
-    int axis4Val = CONTROLLER.Axis4.position();
+    if (abs(JOYSTICK[1]) > 5) {     // Move claw
+        CLAW.setVelocity(abs(JOYSTICK[1]), percent);
+        CLAW.spin(direction(JOYSTICK[1]));
+    }
 
-    if (abs(axis3Val) > 5) {
-        DRIVETRAIN.setVelocity(abs(axis3Val), percent);
-        DRIVETRAIN.spin((axis3Val > 0) ? forward : reverse);
-    } 
-    // --- 4. Control Drivetrain Turning (Axis 4) ---
-    else if (abs(axis4Val) > 5) {
-        DRIVETRAIN_LEFT.setVelocity(abs(axis4Val), percent);
-        DRIVETRAIN_RIGHT.setVelocity(abs(axis4Val), percent);
-        if (axis4Val > 0) { 
-            // Turn Right
-            DRIVETRAIN_LEFT.spin(forward);
-            DRIVETRAIN_RIGHT.spin(reverse);
-        } else { 
-            // Turn Left
-            DRIVETRAIN_LEFT.spin(reverse);
-            DRIVETRAIN_RIGHT.spin(forward);
-        }
-    } 
-    // --- Otherwise Stop Drivetrain ---
-    else {
-        DRIVETRAIN.stop();
+    if (abs(JOYSTICK[2]) > 5) {     // Precision drivetrain movement (25%)
+        DRIVETRAIN.setVelocity(abs(JOYSTICK[2])/4, percent);
+        DRIVETRAIN.spin(direction(JOYSTICK[2]));
+        DRIVETRAIN.setVelocity(75, percent); // Return to original velocity
+    }
+
+    if(abs(JOYSTICK[3]) > 5) {      // Control elevator
+        ELEVATOR.setVelocity(abs(JOYSTICK[3]), percent);
+        ELEVATOR.spin(direction(JOYSTICK[3]));
+    }
+
+    if(abs(JOYSTICK[4] > 5)) {
+        ARM.setVelocity(abs(JOYSTICK[4]), percent);
+        ARM.spin(direction(JOYSTICK[4]));
     }
 }
 
 int check_control() {
-    while (true) {
+    while(true) {
+        update_control_status();
         remote_control();
         wait(20, msec);
     }
