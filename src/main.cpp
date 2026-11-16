@@ -84,7 +84,7 @@ void vexcodeInit() {
     // Combine these values into a single integer
     int seed = int(batteryVoltage + batteryCurrent * 100) + systemTime;
 
-    // Set motors speed
+    // Set default motor speeds
     DRIVETRAIN_LEFT.setVelocity(75, percent);
     DRIVETRAIN_RIGHT.setVelocity(75, percent);
 
@@ -92,46 +92,56 @@ void vexcodeInit() {
     srand(seed);
 }
 
-
-
 // Remote Control configuration
 
 void remote_control() {
-    if (BUTTON[1] && !BUTTON[2]) {  // Left drivetrain motor
+    if (BUTTON[1] && !BUTTON[2]) {      // Drivetrain control
+        DRIVETRAIN_LEFT.setVelocity(75, percent);
         DRIVETRAIN_LEFT.spin(forward);
     } else if (!BUTTON[1] && BUTTON[2]) {
+        DRIVETRAIN_LEFT.setVelocity(75, percent);
         DRIVETRAIN_LEFT.spin(reverse);
-    } else {
-        DRIVETRAIN_LEFT.setStopping(hold);
+    } else if (abs(JOYSTICK[2]) <= 5) {
+        DRIVETRAIN_LEFT.stop();
     }
 
-    if (BUTTON[3] && !BUTTON[4]) {  // Rigth drivetrain motor
+    if (BUTTON[3] && !BUTTON[4]) {  
+        DRIVETRAIN_RIGHT.setVelocity(75, percent);
         DRIVETRAIN_RIGHT.spin(forward);
     } else if (!BUTTON[3] && BUTTON[4]) {
+        DRIVETRAIN_RIGHT.setVelocity(75, percent);
         DRIVETRAIN_RIGHT.spin(reverse);
-    } else {
-        DRIVETRAIN_RIGHT.setStopping(hold);
+    } else if (abs(JOYSTICK[2]) <= 5) {
+        DRIVETRAIN_RIGHT.stop();
     }
 
-    if (abs(JOYSTICK[1]) > 5) {     // Move claw
+    if (abs(JOYSTICK[1]) > 5) {     // Claw control    
         CLAW.setVelocity(abs(JOYSTICK[1]), percent);
         CLAW.spin(direction(JOYSTICK[1]));
+    } else {
+       CLAW.stop();
+       CLAW.setStopping(hold);
     }
 
-    if (abs(JOYSTICK[2]) > 5) {     // Precision drivetrain movement (25%)
-        DRIVETRAIN.setVelocity(abs(JOYSTICK[2])/4, percent);
+        if (abs(JOYSTICK[2]) > 5) {    
+        DRIVETRAIN.setVelocity(abs(JOYSTICK[2]) / 4, percent);
         DRIVETRAIN.spin(direction(JOYSTICK[2]));
-        DRIVETRAIN.setVelocity(75, percent); // Return to original velocity
     }
 
-    if(abs(JOYSTICK[3]) > 5) {      // Control elevator
+    if(abs(JOYSTICK[3]) > 5) {      // Elevator control    
         ELEVATOR.setVelocity(abs(JOYSTICK[3]), percent);
         ELEVATOR.spin(direction(JOYSTICK[3]));
+    } else {
+        ELEVATOR.stop();
+        ELEVATOR.setStopping(hold);
     }
 
-    if(abs(JOYSTICK[4] > 5)) {
+    if(abs(JOYSTICK[4]) > 5) {      // Arm control
         ARM.setVelocity(abs(JOYSTICK[4]), percent);
         ARM.spin(direction(JOYSTICK[4]));
+    } else {
+        ARM.stop();
+        ARM.setStopping(hold);
     }
 }
 
