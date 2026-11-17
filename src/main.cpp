@@ -154,6 +154,10 @@ int check_control() {
     return 0;
 }
 
+int autonomous_movement() {
+    return 0;
+}
+
 task control_manually(check_control);
 
 #pragma endregion VEXcode Generated Robot Configuration
@@ -167,6 +171,14 @@ void driver_control() {
     }
     drive0.stop();
     return;
+}
+
+void autonomous_control() {
+    vex::task auto0(autonomous_movement);
+    while(Competition.isAutonomous() && Competition.isEnabled()) {
+        this_thread::sleep_for(10);
+    }
+    auto0.stop();
 }
 
 int main() {
