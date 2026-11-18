@@ -155,17 +155,26 @@ int check_control() {
 }
 
 int autonomous_movement() {
+    DRIVETRAIN.setVelocity(35, percent);
+    DRIVETRAIN.spin(forward);
+    wait(2, sec);
+
+    ARM.setVelocity(40, percent);
+    ARM.spin(reverse);
+    DRIVETRAIN_LEFT.setVelocity(40,percent);
+    DRIVETRAIN_LEFT.spin(forward);
+    wait(1, sec);
     return 0;
 }
 
-task control_manually(check_control);
+task manual_control(check_control);
 
 #pragma endregion VEXcode Generated Robot Configuration
 
 competition Competition;
 
 void driver_control() {
-    vex::task drive0(control_manually);
+    vex::task drive0(manual_control);
     while(Competition.isDriverControl() && Competition.isEnabled()) {
         this_thread::sleep_for(10);
     }
@@ -183,6 +192,7 @@ void autonomous_control() {
 
 int main() {
     vex::competition::bStopTasksBetweenModes = false;
+    Competition.autonomous(autonomous_control);
     Competition.drivercontrol(driver_control);
 
     vexcodeInit();
