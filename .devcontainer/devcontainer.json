@@ -1,5 +1,5 @@
 {
-  "name": "VEX Robotics Dev Environment",
+  "name": "VEX Robotics",
   "build": {
     "dockerfile": "../Dockerfile"
   },
