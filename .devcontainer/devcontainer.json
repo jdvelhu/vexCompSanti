@@ -1,5 +1,5 @@
 {
-  "name": "VEX Robotics Dev Environment",
+  "name": "VEX Robotics",
   "image": "vex-comp:1.0.0",
   "runArgs": [
     "--name",
