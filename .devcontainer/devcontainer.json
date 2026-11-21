@@ -1,8 +1,10 @@
 {
   "name": "VEX Robotics Dev Environment",
-  "build": {
-    "dockerfile": "../Dockerfile"
-  },
+  "image": "vex-comp:1.0.0",
+  "runArgs": [
+    "--name",
+    "vex-robotics"
+  ],
   "customizations": {
     "vscode": {
       "extensions": [
